@@ -1,0 +1,80 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    private Vector2 startPos;
+    private Vector2 endPos;
+    private float gestureDistance;
+    //private float zoomSpeed = 5f;
+    private float rotateSpeed = 25f;
+    private float scaleSpeed = 0.05f;
+
+    private GameObject model;
+    private bool isTouching = false;
+
+    void Start()
+    {
+        model = GameObject.Find("Model");
+    }
+
+    void Update()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+
+            switch (touch.phase)
+            {
+                case TouchPhase.Began:
+                    startPos = touch.position;
+                    isTouching = true;
+                    break;
+
+                case TouchPhase.Moved:
+                    endPos = touch.position;
+                    gestureDistance = endPos.x - startPos.x;
+
+                    if (isTouching)
+                    {
+                        if (gestureDistance > 0)
+                        {
+                            // Zoom in
+                            model.transform.localScale += new Vector3(scaleSpeed, scaleSpeed, scaleSpeed);
+                        }
+                        else
+                        {
+                            // Zoom out
+                            model.transform.localScale -= new Vector3(scaleSpeed, scaleSpeed, scaleSpeed);
+                        }
+                    }
+                    break;
+
+                case TouchPhase.Ended:
+                    gestureDistance = 0;
+                    isTouching = false;
+                    break;
+            }
+
+            if (Input.touchCount == 2)
+            {
+                Touch touch1 = Input.GetTouch(0);
+                Touch touch2 = Input.GetTouch(1);
+
+                Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
+                Vector2 touch2PrevPos = touch2.position - touch2.deltaPosition;
+
+                float prevTouchDeltaMag = (touch1PrevPos - touch2PrevPos).magnitude;
+                float touchDeltaMag = (touch1.position - touch2.position).magnitude;
+
+                float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
+
+                if (isTouching)
+                {
+                    model.transform.Rotate(Vector3.up, deltaMagnitudeDiff * rotateSpeed * 0.01f);
+                }
+            }
+        }
+    }
+}
